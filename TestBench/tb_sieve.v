@@ -3,6 +3,7 @@
 //Modification History
 //Date      Author        Note
 //20160124  ZHOU Jiemin   Frame Creation
+//20160131  ZHOU Jiemin   New Feature : Starts from a specified number
 
 //Source code starts here----------------------------------
 module tb_isPrime();
@@ -12,6 +13,7 @@ module tb_isPrime();
   parameter HALF_CYCLE = 5;    //clock 100MHz
   parameter OUT_WIDTH  = 10000;
   parameter RANGE = 10000;
+  parameter START = 10;
 
 
   reg                   clk;
@@ -37,12 +39,12 @@ module tb_isPrime();
     $display("@%0t: Reset De-asserted! Test Start!", $time);
     repeat(RANGE) @(posedge clk); //run 10000 cycle
     $display("@%0t: Test Done!", $time);
-    $display("    1 is not a Prime");
-    for(cnt=2; cnt<=RANGE; cnt++) begin
-      if(result[cnt-1] == 1)
-        $display("%5d is a Prime", cnt);
-      else if(result[cnt-1] == 0)
-        $display("%5d is not a Prime", cnt);
+//    $display("    1 is not a Prime");
+    for(cnt = 0; cnt < RANGE; cnt++) begin
+      if(result[cnt] == 1)
+        $display("%5d is a Prime", cnt + START);
+      else if(result[cnt] == 0)
+        $display("%5d is not a Prime", cnt + START);
       else
         $display("WTF?!");
     end

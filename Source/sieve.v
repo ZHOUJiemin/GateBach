@@ -3,6 +3,7 @@
 //Modification History
 //Date      Author        Note
 //20160124  ZHOU Jiemin   Frame Creation
+//20160131  ZHOU Jiemin   New Feature : Starts from a specified number
 
 //Source code starts here------------------------------------
 module isPrime#(parameter OUT_WIDTH = 10000)(input  wire                  clk,
@@ -13,11 +14,10 @@ module isPrime#(parameter OUT_WIDTH = 10000)(input  wire                  clk,
   parameter RANGE_W     = 14;     //range width 10000 => 14 bits
   parameter UPPER_BOUND = 100;    //sieve by using the primes that range from 0 ~ 100
   parameter UPPER_BND_W = 7;      //upper bound width 100 => 7 bits
+  parameter START       = 10;    //starts from a specified number
 
-
-  parameter ISPRIME     = 1;
-  parameter NOTPRIME    = 0;
-
+  localparam ISPRIME     = 1;
+  localparam NOTPRIME    = 0;
 
   //prime list from 0 ~ 100
   //  1   2   3   4   5   6   7   8
@@ -48,11 +48,11 @@ module isPrime#(parameter OUT_WIDTH = 10000)(input  wire                  clk,
   //  1   0   0   0
   parameter reg[UPPER_BOUND-1 : 0] sieve_list = 100'h 6a28a20a08a20828222820808;
 
-  reg                       do_sieve[UPPER_BOUND];      // "do sieve" flag
-  reg [RANGE-1 :         0] i_result;                   // result 101 ~ 10000
-  reg [RANGE-1 :         0] tmp_result[UPPER_BOUND];    // sieve result for every number in the list
-  reg [UPPER_BND_W-1:    0] cnt[UPPER_BOUND];           // counters for every number in the list
-  reg [RANGE_W-1:        0] index[UPPER_BOUND];         // index for each number in the search range
+  reg                          do_sieve[UPPER_BOUND];      // "do sieve" flag
+  reg [RANGE-1 + START: START] i_result;                   // result 101 ~ 10000
+  reg [RANGE-1 + START: START] tmp_result[UPPER_BOUND];    // sieve result for every number in the list
+  reg [UPPER_BND_W-1:       0] cnt[UPPER_BOUND];           // counters for every number in the list
+  reg [RANGE_W-1:           0] index[UPPER_BOUND];         // index for each number in the search range
   integer j;
 
   //process
@@ -69,14 +69,14 @@ module isPrime#(parameter OUT_WIDTH = 10000)(input  wire                  clk,
 
   genvar i;
   generate
-  for(i = 2; i < UPPER_BOUND; i++) begin
+  for(i = 2; i <= UPPER_BOUND; i++) begin
 
     assign do_sieve[i-1] = sieve_list[UPPER_BOUND-i] ? 1 : 0;  //do sieving when the number in the list is prime
 
     //counter
     always @ (posedge clk) begin
       if(!rst_n)                                  //counter set to i when being reset
-        cnt[i-1] <= i;
+        cnt[i-1] <= START % i;
       else
         if(cnt[i-1] != 0)
           cnt[i-1] <= cnt[i-1] - 1;               //counter decrements by each clock cycle
@@ -87,9 +87,9 @@ module isPrime#(parameter OUT_WIDTH = 10000)(input  wire                  clk,
     //index
     always @ (posedge clk) begin
       if(!rst_n)
-        index[i-1] <= i - 1;                        //index set to 2 when being reset
+        index[i-1] <= i - 2;                       //index set to 2 when being reset
       else
-        index[i-1] <= index[i-1] + 1;             //index increments by each clock cycle
+        index[i-1] <= index[i-1] + 1;              //index increments by each clock cycle
     end
 
     //sieveing
